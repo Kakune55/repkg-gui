@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { GetWallpapers, GetImgBase64 } from '../../wailsjs/go/main/App'
 
 // 响应式数据
@@ -8,6 +8,17 @@ const loading = ref(true)
 const error = ref(null)
 // 存储壁纸封面的Map
 const wallpaperCovers = ref(new Map())
+
+// 筛选开关：是否只显示pkgPath不为空的壁纸
+const showOnlyPkg = ref(false)
+
+// 计算属性：根据开关筛选壁纸
+const filteredWallpapers = computed(() => {
+  if (showOnlyPkg.value) {
+    return wallpapers.value.filter(w => w.pkgPath && w.pkgPath !== '')
+  }
+  return wallpapers.value
+})
 
 // 定义emit事件
 const emit = defineEmits(['select-wallpaper'])
@@ -94,6 +105,12 @@ onMounted(() => {
 <template>
   <div class="wallpaper-container">
     <h2>壁纸列表</h2>
+    <!-- 美化后的筛选开关 -->
+    <label class="switch-label">
+      <input type="checkbox" v-model="showOnlyPkg" class="switch-input" />
+      <span class="switch-slider"></span>
+      <span class="switch-text">只显示可解包</span>
+    </label>
     
     <!-- 加载状态 -->
     <div v-if="loading" class="loading">
@@ -113,7 +130,7 @@ onMounted(() => {
     <!-- 壁纸网格 -->
     <div v-else class="wallpaper-grid">
       <div 
-        v-for="wallpaper in wallpapers" 
+        v-for="wallpaper in filteredWallpapers" 
         :key="wallpaper.path" 
         class="wallpaper-card"
         @click="selectWallpaper(wallpaper)"
@@ -205,5 +222,54 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.switch-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.switch-input {
+  display: none;
+}
+
+.switch-slider {
+  width: 38px;
+  height: 22px;
+  background: #ccc;
+  border-radius: 22px;
+  position: relative;
+  transition: background 0.2s;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.switch-slider::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.switch-input:checked + .switch-slider {
+  background: #2196f3;
+}
+
+.switch-input:checked + .switch-slider::before {
+  transform: translateX(16px);
+}
+
+.switch-text {
+  font-size: 15px;
+  color: #333;
 }
 </style>
