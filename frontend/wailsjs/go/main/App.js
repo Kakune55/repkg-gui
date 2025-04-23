@@ -25,3 +25,7 @@ export function GetWallpapers() {
 export function OpenDirInExploer(arg1) {
   return window['go']['main']['App']['OpenDirInExploer'](arg1);
 }
+
+export function SelectBaseDir() {
+  return window['go']['main']['App']['SelectBaseDir']();
+}

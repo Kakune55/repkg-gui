@@ -29,17 +29,7 @@ func (a *App) startup(ctx context.Context) {
 	BasePath, err := util.FindWallpaperEnginePath()
 	for err != nil {
 		// 如果没有找到路径，则弹出选择框
-		runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
-			Type:          runtime.InfoDialog,
-			Title:         "RePKG",
-			Message:       "请选择WallpaperEngine创意工坊路径\n例如: D:/SteamLibrary/steamapps/workshop",
-			Buttons:       []string{"确定"},
-			DefaultButton: "确定",
-			CancelButton:  "",
-		})
-		BasePath, err = runtime.OpenDirectoryDialog(ctx, runtime.OpenDialogOptions{})
-		BasePath = BasePath + "/content/431960"
-		runtime.WindowReloadApp(ctx)
+		a.SelectBaseDir()
 	}
 	a.BasePath = BasePath
 	fmt.Println("BasePath:", a.BasePath)
@@ -47,7 +37,19 @@ func (a *App) startup(ctx context.Context) {
 }
 
 // Greet returns a greeting for the given name
-
+func (a *App) SelectBaseDir() {
+	runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+		Type:          runtime.InfoDialog,
+		Title:         "RePKG",
+		Message:       "请选择WallpaperEngine创意工坊路径\n例如: D:/SteamLibrary/steamapps/workshop",
+		Buttons:       []string{"确定"},
+		DefaultButton: "确定",
+		CancelButton:  "",
+	})
+	BasePath, _ := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{})
+	a.BasePath = BasePath + "/content/431960"
+	runtime.WindowReloadApp(a.ctx)
+}
 
 func (a *App) GetWallpapers() string {
 	// 获取壁纸信息

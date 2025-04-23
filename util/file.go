@@ -13,6 +13,9 @@ type Wallpaper struct {
 	Path      string `json:"path"`
 	PkgPath   string `json:"pkgPath"`
 	CoverPath string `json:"coverPath"`
+	Contentrating string `json:"contentrating"`
+	Description string `json:"description"`
+
 }
 
 func GetWallpapers(path string) (result []byte, err error) {
@@ -65,6 +68,13 @@ func GetWallpaperInfo (path string) (wallpaper Wallpaper, err error) {
 	wallpaper.Name = projectJson["title"].(string)
 	wallpaper.Path = path
 	wallpaper.CoverPath = path + "/" + projectJson["preview"].(string)
+	wallpaper.Contentrating = projectJson["contentrating"].(string)
+	if projectJson["description"] == nil { 
+		wallpaper.Description = ""
+	} else {
+		wallpaper.Description = projectJson["description"].(string)
+	}
+	
 	
 	files, _ := os.ReadDir(path)
 	for _, file := range files {

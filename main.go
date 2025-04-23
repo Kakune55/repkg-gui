@@ -29,7 +29,7 @@ func main() {
 
 	// Create application with options
 	err = wails.Run(&options.App{
-		Title:  "repkg-gui",
+		Title:  "RePKG-GUI v1.1.0",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
@@ -40,6 +40,9 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		Debug: options.Debug{
+            OpenInspectorOnStartup: true,
+        },
 	})
 
 	if err != nil {
