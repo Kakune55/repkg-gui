@@ -7,6 +7,8 @@ export function GetImgBase64(arg1:string):Promise<string>;
 
 export function GetRepkgVersion():Promise<void>;
 
+export function GetWallpaperProjectInfo(arg1:string):Promise<string>;
+
 export function GetWallpapers():Promise<string>;
 
 export function OpenDirInExploer(arg1:string):Promise<void>;

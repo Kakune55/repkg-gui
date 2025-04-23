@@ -120,3 +120,18 @@ func GetImgBase64(path string) (base64str string, err error) {
 	base64str = dataType + base64.StdEncoding.EncodeToString(raw)
 	return base64str, nil
 }
+
+
+func GetWallpaperProjectInfo(path string) (info string) {
+	fmt.Println(path+"/project.json")
+	_, err := os.Stat(path+"/project.json")
+	if err != nil {
+		return "获取失败 可能是project.json 文件不存在"
+	}
+	// 读取project.json文件
+	projectJsonFile, err := os.ReadFile(path + "/project.json")
+	if err != nil {
+		return "获取失败 可能是project.json 文件存在错误"
+	}
+	return string(projectJsonFile)
+}

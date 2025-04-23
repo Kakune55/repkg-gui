@@ -14,6 +14,10 @@ export function GetRepkgVersion() {
   return window['go']['main']['App']['GetRepkgVersion']();
 }
 
+export function GetWallpaperProjectInfo(arg1) {
+  return window['go']['main']['App']['GetWallpaperProjectInfo'](arg1);
+}
+
 export function GetWallpapers() {
   return window['go']['main']['App']['GetWallpapers']();
 }

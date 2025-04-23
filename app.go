@@ -38,9 +38,10 @@ func (a *App) startup(ctx context.Context) {
 			CancelButton:  "",
 		})
 		BasePath, err = runtime.OpenDirectoryDialog(ctx, runtime.OpenDialogOptions{})
+		BasePath = BasePath + "/content/431960"
 		runtime.WindowReloadApp(ctx)
 	}
-	a.BasePath = BasePath + "/content/431960"
+	a.BasePath = BasePath
 	fmt.Println("BasePath:", a.BasePath)
 
 }
@@ -56,6 +57,13 @@ func (a *App) GetWallpapers() string {
 		return ""
 	}
 	return string(wallpapers)
+}
+
+
+func (a *App) GetWallpaperProjectInfo(path string) string {
+	// 获取壁纸信息
+	info := util.GetWallpaperProjectInfo(path)
+	return info
 }
 
 

@@ -1,11 +1,11 @@
 <script setup>
 import { defineProps, defineEmits, ref, onMounted } from 'vue'
-import { GetImgBase64, OpenDirInExploer, GetRepkgVersion, ExtractPKG } from '../../wailsjs/go/main/App'
+import { GetImgBase64, OpenDirInExploer, GetRepkgVersion, ExtractPKG, GetWallpaperProjectInfo } from '../../wailsjs/go/main/App'
 
 const props = defineProps({
     wallpaper: {
         type: Object,
-        required: true
+        required: true,
     }
 })
 
@@ -17,7 +17,7 @@ function goBack() {
 
 // 封面base64
 const coverBase64 = ref(null)
-
+const logtext = ref("壁纸信息输出:\n")
 const rePkgExtractStatus = ref("提取资源")
 
 onMounted(async () => {
@@ -45,6 +45,11 @@ function rePkgExtract() {
     setTimeout(() => {
         rePkgExtractStatus.value = "提取资源"
     }, 3000)
+}
+
+async function getWallpaperProjectInfo() {
+    // 获取壁纸信息
+    logtext.value = await GetWallpaperProjectInfo(props.wallpaper.path)
 }
 
 
@@ -89,13 +94,16 @@ function rePkgExtract() {
                     <button class="action-button" @click="openDirInExploer">
                         打开文件夹
                     </button>
-                    <button class="action-button" @click="rePkgExtract">
+                    <button class="action-button" @click="getWallpaperProjectInfo">
                         详细文件信息(package.json)
                     </button>
                     <button class="action-button" @click="GetRepkgVersion">
                         RePKG版本信息
                     </button>
                 </div>
+            </div>
+            <div class="wallpaper-log">
+                <textarea readonly>{{ logtext }}</textarea>
             </div>
         </div>
     </div>
@@ -202,6 +210,21 @@ function rePkgExtract() {
     border-radius: 8px;
     padding: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.wallpaper-log {
+    background-color: rgba(201, 201, 201, 1);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    height: 280px;
+}
+
+textarea{
+    background:transparent;
+    display: block;
+    height: 100%;
+    width: 100%;
 }
 
 .action-buttons {
