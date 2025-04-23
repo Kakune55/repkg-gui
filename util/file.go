@@ -81,6 +81,7 @@ func GetWallpaperInfo (path string) (wallpaper Wallpaper, err error) {
 func FindWallpaperEnginePath() (string, error) {
 	defaultPaths := []string{
 		"C:/Program Files (x86)/Steam/steamapps/workshop/content/431960",
+		"D:/Steam/steamapps/workshop/content/431960",
 		"D:/SteamLibrary/steamapps/workshop/content/431960",
 		"E:/SteamLibrary/steamapps/workshop/content/431960",
 		"F:/SteamLibrary/steamapps/workshop/content/431960",

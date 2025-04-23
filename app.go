@@ -28,10 +28,21 @@ func (a *App) startup(ctx context.Context) {
 
 	BasePath, err := util.FindWallpaperEnginePath()
 	for err != nil {
+		// 如果没有找到路径，则弹出选择框
+		runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+			Type:          runtime.InfoDialog,
+			Title:         "RePKG",
+			Message:       "请选择WallpaperEngine创意工坊路径\n例如: D:/SteamLibrary/steamapps/workshop",
+			Buttons:       []string{"确定"},
+			DefaultButton: "确定",
+			CancelButton:  "",
+		})
 		BasePath, err = runtime.OpenDirectoryDialog(ctx, runtime.OpenDialogOptions{})
+		runtime.WindowReloadApp(ctx)
 	}
-	a.BasePath = BasePath
-	fmt.Println("BasePath:", BasePath)
+	a.BasePath = BasePath + "/content/431960"
+	fmt.Println("BasePath:", a.BasePath)
+
 }
 
 // Greet returns a greeting for the given name
@@ -53,7 +64,15 @@ func (a *App) GetImgBase64(path string) string {
 	data, err := util.GetImgBase64(path)
 	if err != nil {
 		fmt.Println("Error:", err.Error())
-		return ""
+		runtime.MessageDialog(a.ctx, runtime.MessageDialogOptions{
+			Type:          runtime.InfoDialog,
+			Title:         "RePKG",
+			Message:       "未找到WallpaperEngine创意工坊路径:\n" + path + "\n" + err.Error(),
+			Buttons:       []string{"确定"},
+			DefaultButton: "确定",
+			CancelButton:  "",
+		})
+		return "[]"
 	}
 	return data
 }
