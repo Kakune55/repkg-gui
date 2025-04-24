@@ -1,13 +1,11 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
-import { GetWallpapers, GetImgBase64 , SelectBaseDir} from '../../wailsjs/go/main/App'
+import { GetWallpapers, SelectBaseDir} from '../../wailsjs/go/main/App'
 
 // 响应式数据
 const wallpapers = ref([])
 const loading = ref(true)
 const error = ref(null)
-// 存储壁纸封面的Map
-const wallpaperCovers = ref(new Map())
 
 // 筛选开关：是否只显示pkgPath不为空的壁纸
 const showOnlyPkg = ref(false)
@@ -45,48 +43,6 @@ const filteredWallpapers = computed(() => {
 // 定义emit事件
 const emit = defineEmits(['select-wallpaper'])
 
-// 封面请求队列与控制逻辑
-const coverRequestQueue = []
-let isProcessingQueue = false
-
-// 将封面请求添加到队列
-function enqueueCoverRequest(wallpaper) {
-  coverRequestQueue.push(wallpaper)
-  processCoverQueue()
-}
-
-// 处理封面请求队列
-async function processCoverQueue() {
-  if (isProcessingQueue || coverRequestQueue.length === 0) return
-
-  isProcessingQueue = true
-  const wallpaper = coverRequestQueue.shift()
-
-  try {
-    const coverBase64 = await getWallpaperCover(wallpaper.coverPath)
-    wallpaperCovers.value.set(wallpaper.path, coverBase64)
-  } catch (err) {
-    console.error(`加载壁纸封面失败 ${wallpaper.coverPath}:`, err)
-  }
-
-  // 处理下一个请求
-  setTimeout(() => {
-    isProcessingQueue = false
-    processCoverQueue()
-  }, 0)
-}
-
-// 获取壁纸封面
-async function getWallpaperCover(path) {
-  try {
-    const coverBase64 = await GetImgBase64(path)
-    return coverBase64 || null
-  } catch (err) {
-    console.error(`加载壁纸封面失败 ${path}:`, err)
-    return null
-  }
-}
-
 // 选择壁纸，触发跳转
 function selectWallpaper(wallpaper) {
   emit('select-wallpaper', wallpaper)
@@ -113,19 +69,6 @@ const pagedWallpapers = computed(() => {
   return filteredWallpapers.value.slice(start, start + pageSize.value)
 })
 
-// 懒加载当前页壁纸封面
-watch(pagedWallpapers, (newWallpapers) => {
-  newWallpapers.forEach(wallpaper => {
-    if (
-      wallpaper.coverPath &&
-      !wallpaperCovers.value.has(wallpaper.path) &&
-      !coverRequestQueue.some(w => w.path === wallpaper.path)
-    ) {
-      enqueueCoverRequest(wallpaper)
-    }
-  })
-}, { immediate: true })
-
 // 监听筛选变化时重置页码
 watch([filteredWallpapers, pageSize], () => {
   currentPage.value = 1
@@ -140,18 +83,19 @@ async function loadWallpapers() {
     const parsedWallpapers = JSON.parse(result)
     wallpapers.value = parsedWallpapers
     loading.value = false
-
-    // 初始化封面Map
-    wallpaperCovers.value = new Map()
-    coverRequestQueue.length = 0
-    isProcessingQueue = false
-
-    // 懒加载由watch(pagedWallpapers)自动触发
   } catch (err) {
     console.error("加载壁纸失败:", err)
     error.value = "加载壁纸失败: " + (err.message || "未知错误")
     loading.value = false
   }
+}
+
+// 获取封面图片src（取coverPath最后两段）
+function getCoverSrc(coverPath) {
+  if (!coverPath) return '';
+  const parts = coverPath.replace(/\\/g, '/').split('/');
+  if (parts.length < 2) return coverPath;
+  return parts.slice(-2).join('/');
 }
 
 </script>
@@ -218,8 +162,10 @@ async function loadWallpapers() {
       <div v-for="wallpaper in pagedWallpapers" :key="wallpaper.path" class="wallpaper-card"
         @click="selectWallpaper(wallpaper)">
         <div class="wallpaper-preview">
-          <img v-if="wallpaper.coverPath && wallpaperCovers.get(wallpaper.path)"
-            :src="wallpaperCovers.get(wallpaper.path)" :alt="wallpaper.name" @error="$event.target.src = ''" />
+          <img v-if="wallpaper.coverPath"
+            :src="getCoverSrc(wallpaper.coverPath)"
+            :alt="wallpaper.name"
+            @error="$event.target.src = ''" />
           <div v-else class="no-preview">
             {{ wallpaper.coverPath ? '加载中...' : '无预览图' }}
           </div>

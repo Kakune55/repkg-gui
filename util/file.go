@@ -136,6 +136,21 @@ func GetImgBase64(path string) (base64str string, err error) {
 }
 
 
+func GetImgByte(path string) (data []byte, err error) {
+	_, err = os.Stat(path)
+	if err != nil {
+		return nil, fmt.Errorf("wallpaper not found")
+	}
+	//读取文件
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return raw, nil
+}
+
+
 func GetWallpaperProjectInfo(path string) (info string) {
 	fmt.Println(path+"/project.json")
 	_, err := os.Stat(path+"/project.json")

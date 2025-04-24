@@ -2,11 +2,16 @@ package main
 
 import (
 	"embed"
+	"fmt"
+	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+
+	"repkg-gui/util"
 )
 
 //go:embed all:frontend/dist
@@ -14,6 +19,29 @@ var assets embed.FS
 
 //go:embed bin/RePKG.exe
 var repkgBin []byte
+
+type FileLoader struct {
+	http.Handler
+	AppBasePath *string
+}
+
+func CoverFileLoader(appBasePath *string) *FileLoader {
+	return &FileLoader{
+		AppBasePath: appBasePath,
+	}
+}
+
+func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	var err error
+	requestedFilename := filepath.Clean(*h.AppBasePath + "/" + req.URL.Path)
+	fileData, err := util.GetImgByte(requestedFilename)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		res.Write([]byte(fmt.Sprintf("Could not load file %s", requestedFilename)))
+		return
+	}
+	res.Write(fileData)
+}
 
 func main() {
 
@@ -33,7 +61,8 @@ func main() {
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
-			Assets: assets,
+			Assets:  assets,
+			Handler: CoverFileLoader(&app.AppBasePath),
 		},
 		BackgroundColour: &options.RGBA{R: 248, G: 248, B: 248, A: 1},
 		OnStartup:        app.startup,
@@ -41,8 +70,8 @@ func main() {
 			app,
 		},
 		Debug: options.Debug{
-            OpenInspectorOnStartup: true,
-        },
+			OpenInspectorOnStartup: true,
+		},
 	})
 
 	if err != nil {

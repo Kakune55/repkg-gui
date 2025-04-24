@@ -12,7 +12,7 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx         context.Context
 	AppBasePath string
 }
 
@@ -71,13 +71,11 @@ func (a *App) GetWallpapers() string {
 	return string(wallpapers)
 }
 
-
 func (a *App) GetWallpaperProjectInfo(path string) string {
 	// 获取壁纸信息
 	info := util.GetWallpaperProjectInfo(path)
 	return info
 }
-
 
 func (a *App) GetImgBase64(path string) string {
 	// 获取图标文件并转换为base64返回
@@ -97,7 +95,6 @@ func (a *App) GetImgBase64(path string) string {
 	return data
 }
 
-
 func (a *App) OpenDirInExploer(path string) {
 	// 打开文件夹
 	path = filepath.Clean(path)
@@ -106,7 +103,6 @@ func (a *App) OpenDirInExploer(path string) {
 		fmt.Println("Error:", err.Error())
 	}
 }
-
 
 func (a *App) GetRepkgVersion() {
 	options := runtime.MessageDialogOptions{
@@ -121,7 +117,7 @@ func (a *App) GetRepkgVersion() {
 }
 
 func (a *App) ExtractPKG(source string, target string) {
-	if source == ""{
+	if source == "" {
 		options := runtime.MessageDialogOptions{
 			Type:          runtime.InfoDialog,
 			Title:         "RePKG",
