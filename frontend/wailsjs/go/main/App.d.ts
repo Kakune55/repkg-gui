@@ -13,4 +13,4 @@ export function GetWallpapers():Promise<string>;
 
 export function OpenDirInExploer(arg1:string):Promise<void>;
 
-export function SelectBaseDir():Promise<void>;
+export function SelectBaseDir():Promise<string>;

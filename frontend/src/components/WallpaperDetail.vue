@@ -73,7 +73,7 @@ async function getWallpaperProjectInfo() {
                 <div class="wallpaper-properties">
                     <div class="property-item">
                         <div class="property-label">壁纸名称:</div>
-                        <div class="property-value">{{ wallpaper.name }}</div>
+                        <div class="property-value">{{ wallpaper.description }}</div>
                     </div>
                     <div class="property-item">
                         <div class="property-label">路径:</div>
@@ -82,6 +82,10 @@ async function getWallpaperProjectInfo() {
                     <div class="property-item">
                         <div class="property-label">包文件路径:</div>
                         <div class="property-value">{{ wallpaper.pkgPath }}</div>
+                    </div>
+                    <div class="property-item">
+                        <div class="property-label">分级:</div>
+                        <div class="property-value">{{ wallpaper.contentrating }}</div>
                     </div>
                 </div>
             </div>
@@ -103,7 +107,7 @@ async function getWallpaperProjectInfo() {
                 </div>
             </div>
             <div class="wallpaper-log">
-                <textarea readonly>{{ logtext }}</textarea>
+                <textarea readonly style="font-weight: bold;font-family: Microsoft YaHei;">{{ logtext }}</textarea>
             </div>
         </div>
     </div>
@@ -217,7 +221,7 @@ async function getWallpaperProjectInfo() {
     border-radius: 8px;
     padding: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    height: 280px;
+    height: 250px;
 }
 
 textarea{

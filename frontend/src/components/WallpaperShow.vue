@@ -122,6 +122,12 @@ function selectWallpaper(wallpaper) {
 onMounted(() => {
   loadWallpapers()
 })
+
+function selectBaseDir() {
+  SelectBaseDir()
+  loadWallpapers()
+}
+
 </script>
 
 <template>
@@ -129,7 +135,7 @@ onMounted(() => {
     <h2>壁纸列表</h2>
     <div class="filter-bar">
       <button @click="loadWallpapers" class="button">重载壁纸</button>
-      <button @click="SelectBaseDir" class="button">修改目录</button>
+      <button @click="selectBaseDir" class="button">修改目录</button>
       
       <!-- 下拉多选内容分级 -->
       <div class="dropdown-multiselect" id="contentrating-dropdown">

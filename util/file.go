@@ -70,7 +70,7 @@ func GetWallpaperInfo (path string) (wallpaper Wallpaper, err error) {
 	wallpaper.CoverPath = path + "/" + projectJson["preview"].(string)
 	wallpaper.Contentrating = projectJson["contentrating"].(string)
 	if projectJson["description"] == nil { 
-		wallpaper.Description = ""
+		wallpaper.Description = "无描述"
 	} else {
 		wallpaper.Description = projectJson["description"].(string)
 	}
