@@ -41,7 +41,7 @@ func main() {
 			app,
 		},
 		Debug: options.Debug{
-            OpenInspectorOnStartup: false,
+            OpenInspectorOnStartup: true,
         },
 	})
 

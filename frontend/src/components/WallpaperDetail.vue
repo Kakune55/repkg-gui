@@ -72,7 +72,7 @@ async function getWallpaperProjectInfo() {
                 </div>
                 <div class="wallpaper-properties">
                     <div class="property-item">
-                        <div class="property-label">壁纸名称:</div>
+                        <div class="property-label">说明:</div>
                         <div class="property-value">{{ wallpaper.description }}</div>
                     </div>
                     <div class="property-item">

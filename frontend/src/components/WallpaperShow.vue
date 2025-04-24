@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import { GetWallpapers, GetImgBase64 , SelectBaseDir} from '../../wailsjs/go/main/App'
 
 // 响应式数据
@@ -48,32 +48,6 @@ const emit = defineEmits(['select-wallpaper'])
 // 封面请求队列与控制逻辑
 const coverRequestQueue = []
 let isProcessingQueue = false
-
-// 加载壁纸列表
-async function loadWallpapers() {
-  try {
-    loading.value = true
-    error.value = null
-    const result = await GetWallpapers()
-    const parsedWallpapers = JSON.parse(result)
-    wallpapers.value = parsedWallpapers
-    loading.value = false
-
-    // 初始化封面Map
-    wallpaperCovers.value = new Map()
-
-    // 将所有壁纸的封面请求加入队列
-    parsedWallpapers.forEach(wallpaper => {
-      if (wallpaper.coverPath) {
-        enqueueCoverRequest(wallpaper)
-      }
-    })
-  } catch (err) {
-    console.error("加载壁纸失败:", err)
-    error.value = "加载壁纸失败: " + (err.message || "未知错误")
-    loading.value = false
-  }
-}
 
 // 将封面请求添加到队列
 function enqueueCoverRequest(wallpaper) {
@@ -128,6 +102,58 @@ function selectBaseDir() {
   loadWallpapers()
 }
 
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(32) // 每页壁纸数
+const pageCount = computed(() => Math.ceil(filteredWallpapers.value.length / pageSize.value))
+
+// 当前页壁纸
+const pagedWallpapers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredWallpapers.value.slice(start, start + pageSize.value)
+})
+
+// 懒加载当前页壁纸封面
+watch(pagedWallpapers, (newWallpapers) => {
+  newWallpapers.forEach(wallpaper => {
+    if (
+      wallpaper.coverPath &&
+      !wallpaperCovers.value.has(wallpaper.path) &&
+      !coverRequestQueue.some(w => w.path === wallpaper.path)
+    ) {
+      enqueueCoverRequest(wallpaper)
+    }
+  })
+}, { immediate: true })
+
+// 监听筛选变化时重置页码
+watch([filteredWallpapers, pageSize], () => {
+  currentPage.value = 1
+})
+
+// 加载壁纸列表
+async function loadWallpapers() {
+  try {
+    loading.value = true
+    error.value = null
+    const result = await GetWallpapers()
+    const parsedWallpapers = JSON.parse(result)
+    wallpapers.value = parsedWallpapers
+    loading.value = false
+
+    // 初始化封面Map
+    wallpaperCovers.value = new Map()
+    coverRequestQueue.length = 0
+    isProcessingQueue = false
+
+    // 懒加载由watch(pagedWallpapers)自动触发
+  } catch (err) {
+    console.error("加载壁纸失败:", err)
+    error.value = "加载壁纸失败: " + (err.message || "未知错误")
+    loading.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -142,9 +168,11 @@ function selectBaseDir() {
         <div class="dropdown-multiselect-label" @click="showContentratingDropdown = !showContentratingDropdown">
           <span class="desc-filter-text">内容分级：</span>
           <span class="dropdown-multiselect-selected">
-            <template v-if="contentratingFilter.length === 0">无</template>
-            <template v-else-if="contentratingFilter.length === contentratingOptions.length">全部</template>
-            <template v-else>{{ contentratingFilter.join(', ') }}</template>
+            <template v-if="Array.isArray(contentratingFilter) ? contentratingFilter.length === 0 : contentratingFilter.value.length === 0">无</template>
+            <template v-else-if="Array.isArray(contentratingFilter) ? contentratingFilter.length === contentratingOptions.length : contentratingFilter.value.length === contentratingOptions.length">全部</template>
+            <template v-else>
+              {{ (Array.isArray(contentratingFilter) ? contentratingFilter : contentratingFilter.value).join(', ') }}
+            </template>
           </span>
           <span class="dropdown-arrow" :class="{ open: showContentratingDropdown }">&#9662;</span>
         </div>
@@ -187,7 +215,7 @@ function selectBaseDir() {
 
     <!-- 壁纸网格 -->
     <div v-else class="wallpaper-grid">
-      <div v-for="wallpaper in filteredWallpapers" :key="wallpaper.path" class="wallpaper-card"
+      <div v-for="wallpaper in pagedWallpapers" :key="wallpaper.path" class="wallpaper-card"
         @click="selectWallpaper(wallpaper)">
         <div class="wallpaper-preview">
           <img v-if="wallpaper.coverPath && wallpaperCovers.get(wallpaper.path)"
@@ -198,6 +226,14 @@ function selectBaseDir() {
         </div>
         <div class="wallpaper-title">{{ wallpaper.name }}</div>
       </div>
+    </div>
+
+    <!-- 分页控件 -->
+    <div v-if="pageCount > 1" class="pagination-bar">
+      <button class="pagination-btn" :disabled="currentPage === 1" @click="currentPage--">上一页</button>
+      <span class="pagination-info">第 {{ currentPage }} / {{ pageCount }} 页</span>
+      <button class="pagination-btn" :disabled="currentPage === pageCount" @click="currentPage++">下一页</button>
+      <input class="pagination-input" type="number" min="1" :max="pageCount" v-model.number="currentPage" style="width: 50px; margin-left: 10px;" />
     </div>
     <!-- 其他内容 -->
   </div>
@@ -482,5 +518,40 @@ function selectBaseDir() {
   color: #2196f3;
   margin-right: 2px;
   font-weight: 500;
+}
+
+/* 分页样式 */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 18px 0 0 0;
+  gap: 12px;
+}
+.pagination-btn {
+  padding: 5px 16px;
+  background: #2196f3;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.pagination-btn:disabled {
+  background: #b3c0d1;
+  cursor: not-allowed;
+}
+.pagination-info {
+  font-size: 15px;
+  color: #1976d2;
+  font-weight: 500;
+}
+.pagination-input {
+  border: 1px solid #b3c0d1;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 15px;
+  width: 50px;
 }
 </style>
