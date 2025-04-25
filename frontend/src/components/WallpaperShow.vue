@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
-import { GetWallpapers, SelectBaseDir} from '../../wailsjs/go/main/App'
+import { GetWallpapers, SelectBaseDir } from '../../wailsjs/go/main/App'
 
 // 响应式数据
 const wallpapers = ref([])
@@ -98,98 +98,117 @@ function getCoverSrc(coverPath) {
   return parts.slice(-2).join('/');
 }
 
+function toggleContentrating(rating, checked) {
+  if (checked) {
+    contentratingFilter.value.push(rating)
+  } else {
+    const index = contentratingFilter.value.indexOf(rating)
+    if (index > -1) {
+      contentratingFilter.value.splice(index, 1)
+    }
+  }
+}
+
 </script>
 
 <template>
-  <div class="wallpaper-container">
-    <h2>壁纸列表</h2>
-    <div class="filter-bar">
-      <button @click="loadWallpapers" class="button">重载壁纸</button>
-      <button @click="selectBaseDir" class="button">修改目录</button>
-      
-      <!-- 下拉多选内容分级 -->
-      <div class="dropdown-multiselect" id="contentrating-dropdown">
-        <div class="dropdown-multiselect-label" @click="showContentratingDropdown = !showContentratingDropdown">
-          <span class="desc-filter-text">内容分级：</span>
-          <span class="dropdown-multiselect-selected">
-            <template v-if="Array.isArray(contentratingFilter) ? contentratingFilter.length === 0 : contentratingFilter.value.length === 0">无</template>
-            <template v-else-if="Array.isArray(contentratingFilter) ? contentratingFilter.length === contentratingOptions.length : contentratingFilter.value.length === contentratingOptions.length">全部</template>
-            <template v-else>
-              {{ (Array.isArray(contentratingFilter) ? contentratingFilter : contentratingFilter.value).join(', ') }}
-            </template>
-          </span>
-          <span class="dropdown-arrow" :class="{ open: showContentratingDropdown }">&#9662;</span>
-        </div>
-        <div v-if="showContentratingDropdown" class="dropdown-multiselect-list">
-          <label v-for="desc in contentratingOptions" :key="desc" class="desc-checkbox-label">
-            <input
-              type="checkbox"
-              :value="desc"
-              v-model="contentratingFilter"
-              class="desc-checkbox-input"
-            />
-            <span class="desc-checkbox-custom"></span>
-            <span class="desc-checkbox-text">{{ desc }}</span>
-          </label>
-        </div>
+  <s-drawer id="drawer">
+    <div slot="start" class="setting-bar">
+      <div>
+        <s-button @click="loadWallpapers">重载壁纸</s-button>
+        <s-button @click="selectBaseDir">修改目录</s-button>
       </div>
 
-      <label class="switch-label">
-        <input type="checkbox" v-model="showOnlyPkg" class="switch-input" />
-        <span class="switch-slider"></span>
-        <span class="switch-text">只显示可解包</span>
-      </label>
-
-    </div>
-
-    <!-- 加载状态 -->
-    <div v-if="loading" class="loading">
-      加载中...
-    </div>
-
-    <!-- 错误信息 -->
-    <div v-else-if="error" class="error">
-      {{ error }}
-    </div>
-
-    <!-- 无壁纸提示 -->
-    <div v-else-if="wallpapers.length === 0" class="no-wallpapers">
-      未找到壁纸
-    </div>
-
-    <!-- 壁纸网格 -->
-    <div v-else class="wallpaper-grid">
-      <div v-for="wallpaper in pagedWallpapers" :key="wallpaper.path" class="wallpaper-card"
-        @click="selectWallpaper(wallpaper)">
-        <div class="wallpaper-preview">
-          <img v-if="wallpaper.coverPath"
-            :src="getCoverSrc(wallpaper.coverPath)"
-            :alt="wallpaper.name"
-            @error="$event.target.src = ''" />
-          <div v-else class="no-preview">
-            {{ wallpaper.coverPath ? '加载中...' : '无预览图' }}
+      <s-fold>
+        <s-button slot="trigger">分级过滤</s-button>
+        <div class="fold-content">
+          <div class="fold-checkbox-row">
+            <s-checkbox 
+              :checked="contentratingFilter.includes('Everyone')" 
+              @change="e => toggleContentrating('Everyone', e.target.checked)"
+              type="checkbox"></s-checkbox>
+            <span>Everyone</span>
+          </div>
+          <div class="fold-checkbox-row">
+            <s-checkbox 
+              :checked="contentratingFilter.includes('Questionable')" 
+              @change="e => toggleContentrating('Questionable', e.target.checked)"
+              type="checkbox"></s-checkbox>
+            <span>Questionable</span>
+          </div>
+          <div class="fold-checkbox-row">
+            <s-checkbox 
+              :checked="contentratingFilter.includes('Mature')" 
+              @change="e => toggleContentrating('Mature', e.target.checked)"
+              type="checkbox"></s-checkbox>
+            <span>Mature</span>
           </div>
         </div>
-        <div class="wallpaper-title">{{ wallpaper.name }}</div>
-      </div>
-    </div>
+      </s-fold>
 
-    <!-- 分页控件 -->
-    <div v-if="pageCount > 1" class="pagination-bar">
-      <button class="pagination-btn" :disabled="currentPage === 1" @click="currentPage--">上一页</button>
-      <span class="pagination-info">第 {{ currentPage }} / {{ pageCount }} 页</span>
-      <button class="pagination-btn" :disabled="currentPage === pageCount" @click="currentPage++">下一页</button>
-      <input class="pagination-input" type="number" min="1" :max="pageCount" v-model.number="currentPage" style="width: 50px; margin-left: 10px;" />
+      <div class="switch-label">
+        <s-switch v-model.lazy="showOnlyPkg" type="checkbox"></s-switch>
+        <span>只显示可解包</span>
+      </div>
+
     </div>
-    <!-- 其他内容 -->
-  </div>
-  <h4 style="color: #333;">RePKG-GUI v1.1.0 | RePKG v0.4.0 | CopyRight Kakune55</h4>
+    <s-appbar>
+      <s-icon-button slot="navigation" onclick="document.querySelector('#drawer').toggle()">
+        <s-icon name="menu"></s-icon>
+      </s-icon-button>
+      <div slot="headline"> 壁纸列表 </div>
+    </s-appbar>
+    <s-scroll-view class="wallpaper-container">
+
+
+      <!-- 加载状态 -->
+      <div v-if="loading" class="loading">
+        加载中...
+      </div>
+
+      <!-- 错误信息 -->
+      <div v-else-if="error" class="error">
+        {{ error }}
+      </div>
+
+      <!-- 无壁纸提示 -->
+      <div v-else-if="wallpapers.length === 0" class="no-wallpapers">
+        未找到壁纸
+      </div>
+
+      <!-- 壁纸网格 -->
+      <div v-else class="wallpaper-grid">
+        <s-card v-for="wallpaper in pagedWallpapers" :key="wallpaper.path" class="wallpaper-card"
+          @click="selectWallpaper(wallpaper)">
+          <div class="wallpaper-preview">
+            <img v-if="wallpaper.coverPath" :src="getCoverSrc(wallpaper.coverPath)" :alt="wallpaper.name"
+              @error="$event.target.src = ''" />
+            <div v-else class="no-preview">
+              {{ wallpaper.coverPath ? '加载中...' : '无预览图' }}
+            </div>
+          </div>
+          <div class="wallpaper-title">{{ wallpaper.name }}</div>
+        </s-card>
+      </div>
+
+      <!-- 分页控件 -->
+      <div v-if="pageCount > 1" class="pagination-bar">
+        <button class="pagination-btn" :disabled="currentPage === 1" @click="currentPage--">上一页</button>
+        <span class="pagination-info">第 {{ currentPage }} / {{ pageCount }} 页</span>
+        <button class="pagination-btn" :disabled="currentPage === pageCount" @click="currentPage++">下一页</button>
+        <input class="pagination-input" type="number" min="1" :max="pageCount" v-model.number="currentPage"
+          style="width: 50px; margin-left: 10px;" />
+      </div>
+      <!-- 其他内容 -->
+      <h4>RePKG-GUI v1.1.0 | RePKG v0.4.0 | CopyRight Kakune55</h4>
+    </s-scroll-view>
+  </s-drawer>
 </template>
 
 <style scoped>
 .wallpaper-container {
   padding: 20px;
-  color: #333;
+  height: 100%;
 }
 
 .loading,
@@ -212,9 +231,7 @@ function getCoverSrc(coverPath) {
 }
 
 .wallpaper-card {
-  background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
@@ -262,88 +279,36 @@ function getCoverSrc(coverPath) {
 
 .switch-label {
   display: flex;
+  gap: 10px;
   align-items: center;
   user-select: none;
-  cursor: pointer;
-  margin-bottom: 0;
-  margin-left: 6px;
-  margin-right: 6px;
 }
 
-.switch-input {
-  display: none;
+
+.setting-bar {
+  display: block;
+  padding: 20px;
 }
 
-.switch-slider {
-  width: 46px;
-  height: 26px;
-  background: #b3c0d1;
-  border-radius: 26px;
-  position: relative;
-  transition: background 0.2s;
-  margin-right: 10px;
-  flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(33,150,243,0.04);
-}
-
-.switch-slider::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 20px;
-  height: 20px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(33,150,243,0.10);
-}
-
-.switch-input:checked + .switch-slider {
-  background: #2196f3;
-}
-
-.switch-input:checked + .switch-slider::before {
-  transform: translateX(20px);
-}
-
-.switch-text {
-  font-size: 15px;
-  color: #2196f3;
-  font-weight: 500;
-}
-
-.filter-bar {
+.setting-bar>div {
   display: flex;
   align-items: center;
-  gap: 18px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
+  margin-bottom: 20px;
+  gap: 15px;
 }
 
-/* 优化按钮样式 */
-.button {
-  padding: 7px 20px;
-  background: linear-gradient(90deg, #2196f3 60%, #42a5f5 100%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(33,150,243,0.08);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-  margin: 0;
-  outline: none;
-  min-width: 90px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.fold-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
 }
-.button:hover, .button:focus {
-  background: linear-gradient(90deg, #1976d2 60%, #2196f3 100%);
-  box-shadow: 0 4px 16px rgba(33,150,243,0.15);
-  transform: translateY(-2px) scale(1.03);
+
+.fold-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
 }
 
 /* 下拉多选样式 */
@@ -352,6 +317,7 @@ function getCoverSrc(coverPath) {
   min-width: 170px;
   user-select: none;
 }
+
 .dropdown-multiselect-label {
   display: flex;
   align-items: center;
@@ -363,12 +329,15 @@ function getCoverSrc(coverPath) {
   min-height: 34px;
   transition: border 0.2s, box-shadow 0.2s;
   gap: 7px;
-  box-shadow: 0 1px 3px rgba(33,150,243,0.04);
+  box-shadow: 0 1px 3px rgba(33, 150, 243, 0.04);
 }
-.dropdown-multiselect-label:hover, .dropdown-multiselect-label:focus {
+
+.dropdown-multiselect-label:hover,
+.dropdown-multiselect-label:focus {
   border-color: #2196f3;
-  box-shadow: 0 2px 8px rgba(33,150,243,0.10);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.10);
 }
+
 .dropdown-multiselect-selected {
   flex: 1;
   font-size: 15px;
@@ -378,15 +347,18 @@ function getCoverSrc(coverPath) {
   text-overflow: ellipsis;
   font-weight: 500;
 }
+
 .dropdown-arrow {
   margin-left: 8px;
   font-size: 13px;
   color: #2196f3;
   transition: transform 0.2s;
 }
+
 .dropdown-arrow.open {
   transform: rotate(180deg);
 }
+
 .dropdown-multiselect-list {
   position: absolute;
   top: 110%;
@@ -395,7 +367,7 @@ function getCoverSrc(coverPath) {
   background: #fff;
   border: 1.5px solid #b3c0d1;
   border-radius: 7px;
-  box-shadow: 0 4px 16px rgba(33,150,243,0.10);
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.10);
   padding: 10px 0;
   min-width: 170px;
   display: flex;
@@ -403,10 +375,19 @@ function getCoverSrc(coverPath) {
   gap: 4px;
   animation: dropdownIn 0.18s;
 }
+
 @keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-8px);}
-  to { opacity: 1; transform: translateY(0);}
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .desc-checkbox-label {
   display: flex;
   align-items: center;
@@ -416,12 +397,15 @@ function getCoverSrc(coverPath) {
   border-radius: 4px;
   transition: background 0.15s;
 }
+
 .desc-checkbox-label:hover {
   background: #f0f7ff;
 }
+
 .desc-checkbox-input {
   display: none;
 }
+
 .desc-checkbox-custom {
   width: 17px;
   height: 17px;
@@ -432,11 +416,13 @@ function getCoverSrc(coverPath) {
   position: relative;
   transition: border 0.2s, background 0.2s;
 }
-.desc-checkbox-input:checked + .desc-checkbox-custom {
+
+.desc-checkbox-input:checked+.desc-checkbox-custom {
   border-color: #2196f3;
   background: #2196f3;
 }
-.desc-checkbox-input:checked + .desc-checkbox-custom::after {
+
+.desc-checkbox-input:checked+.desc-checkbox-custom::after {
   content: "";
   position: absolute;
   left: 4px;
@@ -447,18 +433,22 @@ function getCoverSrc(coverPath) {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
+
 .desc-checkbox-custom::after {
   content: "";
   display: none;
 }
-.desc-checkbox-input:checked + .desc-checkbox-custom::after {
+
+.desc-checkbox-input:checked+.desc-checkbox-custom::after {
   display: block;
 }
+
 .desc-checkbox-text {
   font-size: 15px;
   color: #333;
   font-weight: 400;
 }
+
 .desc-filter-text {
   font-size: 15px;
   color: #2196f3;
@@ -474,6 +464,7 @@ function getCoverSrc(coverPath) {
   margin: 18px 0 0 0;
   gap: 12px;
 }
+
 .pagination-btn {
   padding: 5px 16px;
   background: #2196f3;
@@ -484,15 +475,18 @@ function getCoverSrc(coverPath) {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .pagination-btn:disabled {
   background: #b3c0d1;
   cursor: not-allowed;
 }
+
 .pagination-info {
   font-size: 15px;
   color: #1976d2;
   font-weight: 500;
 }
+
 .pagination-input {
   border: 1px solid #b3c0d1;
   border-radius: 4px;

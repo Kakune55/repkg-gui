@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "sober": "^1.1.0",
     "vue": "^3.2.37"
   },
   "devDependencies": {

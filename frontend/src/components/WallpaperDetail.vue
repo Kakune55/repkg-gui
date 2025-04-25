@@ -57,67 +57,81 @@ async function getWallpaperProjectInfo() {
 
 <template>
     <div class="wallpaper-detail-container">
-        <div class="wallpaper-detail-header">
-            <button class="back-button" @click="goBack">
-                返回列表
-            </button>
-            <h2 style="color: black;">{{ wallpaper.name }}</h2>
+        <div class="list-container">
+            <div class="wallpaper-detail-header">
+                <!-- 使用 Sober 按钮 -->
+                <s-button @click="goBack">
+                    返回列表
+                </s-button>
+                <h2>{{ wallpaper.name }}</h2>
+            </div>
         </div>
-
-        <div class="wallpaper-detail-content">
-            <div class="wallpaper-info">
-                <div class="wallpaper-cover">
-                    <img v-if="coverBase64" :src="coverBase64" :alt="wallpaper.name" class="cover-img" />
-                    <div v-else class="no-preview">无预览图</div>
-                </div>
-                <div class="wallpaper-properties">
-                    <div class="property-item">
-                        <div class="property-label">说明:</div>
-                        <div class="property-value">{{ wallpaper.description }}</div>
+        <div class="list-container">
+            <div class="wallpaper-detail-content">
+                <s-card class="wallpaper-info">
+                    <div class="wallpaper-cover">
+                        <img v-if="coverBase64" :src="coverBase64" :alt="wallpaper.name" class="cover-img" />
+                        <div v-else class="no-preview">无预览图</div>
                     </div>
-                    <div class="property-item">
-                        <div class="property-label">路径:</div>
-                        <div class="property-value">{{ wallpaper.path }}</div>
+                    <div class="wallpaper-properties">
+                        <div class="property-item">
+                            <div class="property-label">说明:</div>
+                            <div class="property-value">{{ wallpaper.description }}</div>
+                        </div>
+                        <div class="property-item">
+                            <div class="property-label">路径:</div>
+                            <div class="property-value">{{ wallpaper.path }}</div>
+                        </div>
+                        <div class="property-item">
+                            <div class="property-label">包文件路径:</div>
+                            <div class="property-value">{{ wallpaper.pkgPath }}</div>
+                        </div>
+                        <div class="property-item">
+                            <div class="property-label">分级:</div>
+                            <div class="property-value">{{ wallpaper.contentrating }}</div>
+                        </div>
                     </div>
-                    <div class="property-item">
-                        <div class="property-label">包文件路径:</div>
-                        <div class="property-value">{{ wallpaper.pkgPath }}</div>
-                    </div>
-                    <div class="property-item">
-                        <div class="property-label">分级:</div>
-                        <div class="property-value">{{ wallpaper.contentrating }}</div>
-                    </div>
-                </div>
+                </s-card>
             </div>
-
-            <div class="wallpaper-actions">
-                <div class="action-buttons">
-                    <button class="action-button" @click="rePkgExtract">
+            <div class="list-container">
+                <s-card class="wallpaper-actions">
+                    <s-button @click="rePkgExtract">
                         {{ rePkgExtractStatus }}
-                    </button>
-                    <button class="action-button" @click="openDirInExploer">
+                    </s-button>
+                    <s-button @click="openDirInExploer">
                         打开文件夹
-                    </button>
-                    <button class="action-button" @click="getWallpaperProjectInfo">
+                    </s-button>
+                    <s-button @click="getWallpaperProjectInfo">
                         详细文件信息(package.json)
-                    </button>
-                    <button class="action-button" @click="GetRepkgVersion">
+                    </s-button>
+                    <s-button @click="GetRepkgVersion">
                         RePKG版本信息
-                    </button>
-                </div>
+                    </s-button>
+                </s-card>
             </div>
-            <div class="wallpaper-log">
-                <textarea readonly style="font-weight: bold;font-family: Microsoft YaHei;">{{ logtext }}</textarea>
+            <div class="list-container">
+                <s-card class="wallpaper-log">
+                    <pre class="log-output">{{ logtext }}</pre>
+                </s-card>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
+s-card {
+    max-width: none;
+}
+
 .wallpaper-detail-container {
-    padding: 20px;
+    padding: 10px 25px;
     max-width: 1000px;
     margin: 0 auto;
+    gap: 20px;
+}
+
+.list-container {
+    padding-top: 10px;
 }
 
 .wallpaper-detail-header {
@@ -127,33 +141,14 @@ async function getWallpaperProjectInfo() {
     gap: 15px;
 }
 
-.back-button {
-    padding: 8px 16px;
-    background-color: #2196f3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-}
-
-.back-button:hover {
-    background-color: #0d8aee;
-}
 
 .wallpaper-detail-content {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: block;
     gap: 20px;
 }
 
 .wallpaper-info {
-    background-color: rgba(201, 201, 201, 1);
-    border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     display: flex;
     align-items: flex-start;
     gap: 20px;
@@ -166,7 +161,6 @@ async function getWallpaperProjectInfo() {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eee;
     border-radius: 8px;
     overflow: hidden;
     margin-right: 20px;
@@ -200,78 +194,47 @@ async function getWallpaperProjectInfo() {
 .property-label {
     min-width: 120px;
     font-weight: bold;
-    color: #121212;
 }
 
 .property-value {
-    color: #121212;
     flex: 1;
     word-break: break-all;
 }
 
 .wallpaper-actions {
-    background-color: rgba(201, 201, 201, 1);
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: left;
+    padding: 15px;
+    gap: 10px;
 }
 
 .wallpaper-log {
-    background-color: rgba(201, 201, 201, 1);
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    height: 250px;
-}
-
-textarea{
-    background:transparent;
-    display: block;
-    height: 100%;
     width: 100%;
+    height: 250px;
+    padding: 15px;
 }
 
-.action-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 15px;
-}
-
-.action-button {
-    padding: 10px 20px;
-    background-color: #2196f3;
-    color: white;
+.log-output {
+    width: 100%;
+    height: 230px;
+    margin: 0;
+    padding: 10px;
+    font-size: 15px;
+    font-family: inherit;
+    white-space: pre-wrap;
+    word-break: break-all;
+    overflow-y: auto;
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    min-width: 150px;
+    outline: none;
+    box-shadow: none;
+    resize: none;
+    user-select: text;
+    text-align: left;
+    /* 隐藏滚动条 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
 }
-
-.action-button:hover {
-    background-color: #0d8aee;
-}
-
-@media (max-width: 600px) {
-    .wallpaper-info {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .wallpaper-cover {
-        margin-right: 0;
-        margin-bottom: 10px;
-        width: 100%;
-        height: 120px;
-    }
-
-    .property-item {
-        flex-direction: column;
-    }
-
-    .property-label {
-        margin-bottom: 4px;
-    }
+.log-output::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Webkit */
 }
 </style>
