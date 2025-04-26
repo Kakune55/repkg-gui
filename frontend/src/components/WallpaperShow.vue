@@ -6,6 +6,7 @@ import { GetWallpapers, SelectBaseDir } from '../../wailsjs/go/main/App'
 const wallpapers = ref([])
 const loading = ref(true)
 const error = ref(null)
+const searchQuery = ref('') // 添加搜索关键词变量
 
 // 筛选开关：是否只显示pkgPath不为空的壁纸
 const showOnlyPkg = ref(false)
@@ -31,6 +32,16 @@ onBeforeUnmount(() => {
 // 计算属性：根据开关和contentrating筛选壁纸
 const filteredWallpapers = computed(() => {
   let result = wallpapers.value
+  
+  // 首先按搜索关键词过滤
+  if (searchQuery.value.trim() !== '') {
+    const query = searchQuery.value.toLowerCase().trim()
+    result = result.filter(w => 
+      w.name.toLowerCase().includes(query) || 
+      (w.title && w.title.toLowerCase().includes(query))
+    )
+  }
+  
   if (showOnlyPkg.value) {
     result = result.filter(w => w.pkgPath && w.pkgPath !== '')
   }
@@ -109,6 +120,11 @@ function toggleContentrating(rating, checked) {
   }
 }
 
+// 清除搜索框
+function clearSearch() {
+  searchQuery.value = ''
+}
+
 </script>
 
 <template>
@@ -118,29 +134,31 @@ function toggleContentrating(rating, checked) {
         <s-button @click="loadWallpapers">重载壁纸</s-button>
         <s-button @click="selectBaseDir">修改目录</s-button>
       </div>
+      <div>
+        <s-text-field style="display: grid; width: auto" label="搜索壁纸" v-model="searchQuery">
+          <s-icon slot="start" name="search"></s-icon>
+          <s-icon-button slot="end" @click="clearSearch" v-if="searchQuery">
+            <s-icon name="close"></s-icon>
+          </s-icon-button>
+        </s-text-field>
+      </div>
 
       <s-fold>
         <s-button slot="trigger">分级过滤</s-button>
         <div class="fold-content">
           <div class="fold-checkbox-row">
-            <s-checkbox 
-              :checked="contentratingFilter.includes('Everyone')" 
-              @change="e => toggleContentrating('Everyone', e.target.checked)"
-              type="checkbox"></s-checkbox>
+            <s-checkbox :checked="contentratingFilter.includes('Everyone')"
+              @change="e => toggleContentrating('Everyone', e.target.checked)" type="checkbox"></s-checkbox>
             <span>Everyone</span>
           </div>
           <div class="fold-checkbox-row">
-            <s-checkbox 
-              :checked="contentratingFilter.includes('Questionable')" 
-              @change="e => toggleContentrating('Questionable', e.target.checked)"
-              type="checkbox"></s-checkbox>
+            <s-checkbox :checked="contentratingFilter.includes('Questionable')"
+              @change="e => toggleContentrating('Questionable', e.target.checked)" type="checkbox"></s-checkbox>
             <span>Questionable</span>
           </div>
           <div class="fold-checkbox-row">
-            <s-checkbox 
-              :checked="contentratingFilter.includes('Mature')" 
-              @change="e => toggleContentrating('Mature', e.target.checked)"
-              type="checkbox"></s-checkbox>
+            <s-checkbox :checked="contentratingFilter.includes('Mature')"
+              @change="e => toggleContentrating('Mature', e.target.checked)" type="checkbox"></s-checkbox>
             <span>Mature</span>
           </div>
         </div>
@@ -290,7 +308,7 @@ function toggleContentrating(rating, checked) {
   padding: 20px;
 }
 
-.setting-bar>div {
+.setting-bar > div {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
