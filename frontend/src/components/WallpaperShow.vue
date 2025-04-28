@@ -190,8 +190,8 @@ function clearSearch() {
       </div>
 
       <!-- 无壁纸提示 -->
-      <div v-else-if="wallpapers.length === 0" class="no-wallpapers">
-        未找到壁纸
+      <div v-else-if="pagedWallpapers.length === 0" class="no-wallpapers">
+        <s-empty style="height: 540px;">{{ wallpapers.length === 0 ? '暂时没有数据' : '没有符合筛选条件的壁纸' }}</s-empty>
       </div>
 
       <!-- 壁纸网格 -->
@@ -211,14 +211,14 @@ function clearSearch() {
 
       <!-- 分页控件 -->
       <div v-if="pageCount > 1" class="pagination-bar">
-        <button class="pagination-btn" :disabled="currentPage === 1" @click="currentPage--">上一页</button>
-        <span class="pagination-info">第 {{ currentPage }} / {{ pageCount }} 页</span>
-        <button class="pagination-btn" :disabled="currentPage === pageCount" @click="currentPage++">下一页</button>
-        <input class="pagination-input" type="number" min="1" :max="pageCount" v-model.number="currentPage"
-          style="width: 50px; margin-left: 10px;" />
+        <s-button :disabled="currentPage === 1" @click="currentPage--">上一页</s-button>
+        <span>第 {{ currentPage }} / {{ pageCount }} 页</span>
+        <s-button :disabled="currentPage === pageCount" @click="currentPage++">下一页</s-button>
+        <s-text-field label="Page" type="number" min="1" :max="pageCount" v-model.number="currentPage"
+          style="width: 50px; margin-left: 10px;" ></s-text-field>
       </div>
       <!-- 其他内容 -->
-      <h4>RePKG-GUI v1.1.0 | RePKG v0.4.0 | CopyRight Kakune55</h4>
+      <h4>RePKG-GUI v1.2.0 | RePKG v0.4.0 | CopyRight Kakune55</h4>
     </s-scroll-view>
   </s-drawer>
 </template>
@@ -481,35 +481,5 @@ function clearSearch() {
   justify-content: center;
   margin: 18px 0 0 0;
   gap: 12px;
-}
-
-.pagination-btn {
-  padding: 5px 16px;
-  background: #2196f3;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-size: 15px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.pagination-btn:disabled {
-  background: #b3c0d1;
-  cursor: not-allowed;
-}
-
-.pagination-info {
-  font-size: 15px;
-  color: #1976d2;
-  font-weight: 500;
-}
-
-.pagination-input {
-  border: 1px solid #b3c0d1;
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 15px;
-  width: 50px;
 }
 </style>
