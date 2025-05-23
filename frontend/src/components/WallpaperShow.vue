@@ -203,7 +203,7 @@ function clearSearch() {
           style="width: 50px; margin-left: 10px;" ></s-text-field>
       </div>
       <!-- 其他内容 -->
-      <h4>RePKG-GUI v1.2.0 | RePKG v0.4.0 | CopyRight Kakune55</h4>
+      <h4>RePKG-GUI v1.2.1 | RePKG v0.4.0 | CopyRight Kakune55</h4>
     </s-scroll-view>
   </s-drawer>
 </template>

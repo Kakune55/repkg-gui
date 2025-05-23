@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"repkg-gui/util"
@@ -116,7 +117,7 @@ func (a *App) GetRepkgVersion() {
 	runtime.MessageDialog(a.ctx, options)
 }
 
-func (a *App) ExtractPKG(source string, target string) {
+func (a *App) ExtractPKG(source string, target string) bool {
 	if source == "" {
 		options := runtime.MessageDialogOptions{
 			Type:          runtime.InfoDialog,
@@ -127,7 +128,7 @@ func (a *App) ExtractPKG(source string, target string) {
 			CancelButton:  "",
 		}
 		runtime.MessageDialog(a.ctx, options)
-		return
+		return false
 	}
 	target = filepath.Clean(target)
 	err := util.RePkgExtract(source, target)
@@ -141,10 +142,19 @@ func (a *App) ExtractPKG(source string, target string) {
 			CancelButton:  "",
 		}
 		runtime.MessageDialog(a.ctx, options)
-		return
+		return false
 	}
 	err = exec.Command("explorer.exe", target).Start()
 	if err != nil {
 		fmt.Println("Error:", err.Error())
 	}
+	return true
+}
+
+
+func (a *App) ClearOutputDir(target string) bool {
+	fmt.Println(target)
+	err := os.RemoveAll(target)
+	fmt.Println(err)
+	return err == nil
 }

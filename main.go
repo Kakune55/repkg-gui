@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"net/http"
@@ -43,6 +44,16 @@ func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	res.Write(fileData)
 }
 
+func (a *App) clearRePkg(ctx context.Context) {
+	// 清除RePKG.exe
+	err := os.Remove("RePKG.exe")
+	if err != nil {
+		println("Error:", err.Error())
+	}
+}
+
+
+
 func main() {
 
 	// 判断bin/RePKG.exe是否存在，不存在则提取
@@ -57,7 +68,7 @@ func main() {
 
 	// Create application with options
 	err = wails.Run(&options.App{
-		Title:  "RePKG-GUI v1.2.0",
+		Title:  "RePKG-GUI v1.2.1",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
@@ -66,6 +77,7 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 248, G: 248, B: 248, A: 1},
 		OnStartup:        app.startup,
+		OnShutdown:		  app.clearRePkg,
 		Bind: []interface{}{
 			app,
 		},

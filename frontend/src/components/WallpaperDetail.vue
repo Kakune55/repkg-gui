@@ -1,6 +1,6 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted } from 'vue'
-import { GetImgBase64, OpenDirInExploer, GetRepkgVersion, ExtractPKG, GetWallpaperProjectInfo } from '../../wailsjs/go/main/App'
+import { defineProps, defineEmits, ref, onMounted, computed } from 'vue'
+import { GetImgBase64, OpenDirInExploer, GetRepkgVersion, ExtractPKG, GetWallpaperProjectInfo, ClearOutputDir } from '../../wailsjs/go/main/App'
 
 const props = defineProps({
     wallpaper: {
@@ -19,6 +19,30 @@ function goBack() {
 const coverBase64 = ref(null)
 const logtext = ref("壁纸信息输出:\n")
 const rePkgExtractStatus = ref("提取资源")
+const clearBtnStatus = ref("normal") // normal | confirm | success | fail
+let clearBtnTimer = null
+
+const clearBtnText = computed(() => {
+    switch (clearBtnStatus.value) {
+        case "normal":
+            return "清理输出文件夹"
+        case "confirm":
+            return "确认清除"
+        case "success":
+            return "清除成功"
+        case "fail":
+            return "清除失败"
+        default:
+            return "清理中..."
+    }
+})
+
+const clearBtnStyle = computed(() => {
+    if (clearBtnStatus.value === "confirm") {
+        return { background: "#e74c3c", color: "#fff" }
+    }
+    return {}
+})
 
 onMounted(async () => {
     if (props.wallpaper && props.wallpaper.coverPath) {
@@ -38,10 +62,10 @@ async function openDirInExploer() {
     }
 }
 
-function rePkgExtract() {
+async function rePkgExtract() {
     rePkgExtractStatus.value = "提取中"
-    ExtractPKG(props.wallpaper.pkgPath, props.wallpaper.path + "/output")
-    rePkgExtractStatus.value = "提取完成"
+    const success = await ExtractPKG(props.wallpaper.pkgPath, props.wallpaper.path + "/output")
+    rePkgExtractStatus.value = success ? "提取完成" : "提取失败"
     setTimeout(() => {
         rePkgExtractStatus.value = "提取资源"
     }, 3000)
@@ -50,6 +74,36 @@ function rePkgExtract() {
 async function getWallpaperProjectInfo() {
     // 获取壁纸信息
     logtext.value = await GetWallpaperProjectInfo(props.wallpaper.path)
+}
+
+function resetClearBtn() {
+    clearBtnStatus.value = "normal"
+    if (clearBtnTimer) {
+        clearTimeout(clearBtnTimer)
+        clearBtnTimer = null
+    }
+}
+
+async function clearOutputDir() {
+    if (clearBtnStatus.value === "normal") {
+        clearBtnStatus.value = "confirm"
+        clearBtnTimer = setTimeout(() => {
+            resetClearBtn()
+        }, 2000)
+        return
+    }
+    if (clearBtnStatus.value === "confirm") {
+        if (clearBtnTimer) {
+            clearTimeout(clearBtnTimer)
+            clearBtnTimer = null
+        }
+        clearBtnStatus.value = "pending"
+        const result = await ClearOutputDir(props.wallpaper.path + "/output")
+        clearBtnStatus.value = result ? "success" : "fail"
+        clearBtnTimer = setTimeout(() => {
+            resetClearBtn()
+        }, 3000)
+    }
 }
 
 
@@ -100,6 +154,12 @@ async function getWallpaperProjectInfo() {
                     </s-button>
                     <s-button @click="openDirInExploer">
                         打开文件夹
+                    </s-button>
+                    <s-button
+                        :style="clearBtnStyle"
+                        @click="clearOutputDir"
+                    >
+                        {{ clearBtnText }}
                     </s-button>
                     <s-button @click="getWallpaperProjectInfo">
                         详细文件信息(package.json)
